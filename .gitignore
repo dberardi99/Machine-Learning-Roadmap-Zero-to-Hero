@@ -1,0 +1,12 @@
+#########################################
+# OS-specific temporary and backup files
+.DS_Store
+
+# Digraph generated files #
+######################
+*.gv
+*.svg
+
+# Nose/Pytest generated files #
+###############################
+__pycache__
