@@ -10,3 +10,9 @@
 # Nose/Pytest generated files #
 ###############################
 __pycache__
+bin
+lib
+pyvenv.cfg
+etc
+share
+.lock
