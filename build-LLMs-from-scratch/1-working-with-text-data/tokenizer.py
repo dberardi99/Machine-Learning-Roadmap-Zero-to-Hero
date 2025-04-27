@@ -5,11 +5,11 @@ class SimpleTokenizerV1: # this is not the real tokenizer used by GPT models, bu
     '''
     A first simplified version of tokenizer.
     '''
-    def __init__(self, vocab): # the class takes a vocabulary as input
+    def __init__(self, vocab: dict) -> None: # the class takes a vocabulary as input
         self.str_to_int = vocab # regular vocabulary (string to integer mapping)
         self.int_to_str = {i: s for s, i in vocab.items()} # inverted vocabulary (integer to string mapping)
 
-    def encode(self, text):
+    def encode(self, text: str) -> list[int]:
         '''
         A function to break down text into tokens using regular expressions.
         '''
@@ -18,7 +18,7 @@ class SimpleTokenizerV1: # this is not the real tokenizer used by GPT models, bu
         ids = [self.str_to_int[s] for s in preprocessed] # creation of token ID for each token/string
         return ids
     
-    def decode(self, ids):
+    def decode(self, ids: list[int]) -> str:
         '''
         A function to re-create the original text starting from the token IDs.
         '''
@@ -30,11 +30,11 @@ class SimpleTokenizerV2: # advanced version of our tokenizer including special t
     '''
     A second version of tokenizer which is also able to deal with unknown words.
     '''
-    def __init__(self, vocab): # the class takes a vocabulary as input
+    def __init__(self, vocab: dict) -> None: # the class takes a vocabulary as input
         self.str_to_int = vocab # regular vocabulary (string to integer mapping)
         self.int_to_str = {i: s for s, i in vocab.items()} # inverted vocabulary (integer to string mapping)
 
-    def encode(self, text):
+    def encode(self, text: str) -> list[int]:
         '''
         A function to break down text into tokens using regular expressions and including special tokens.
         '''
@@ -45,7 +45,7 @@ class SimpleTokenizerV2: # advanced version of our tokenizer including special t
         ids = [self.str_to_int[s] for s in preprocessed] # creation of token ID for each token/string
         return ids
     
-    def decode(self, ids):
+    def decode(self, ids: list[int]) -> str:
         '''
         A function to re-create the original text starting from the token IDs.
         '''
@@ -61,13 +61,13 @@ class BPETokenizerSimple:
         https://github.com/rasbt/LLMs-from-scratch/blob/main/ch02/05_bpe-from-scratch/bpe-from-scratch.ipynb
         https://sebastianraschka.com/blog/2025/bpe-from-scratch.html
     '''
-    def __init__(self):
+    def __init__(self) -> None:
         self.vocab = {} # map token_id to token_str (e.g., {11246: "some"})
         self.inverse_vocab = {} # map token_str to token_id (e.g., {"some": 11246})
         self.bpe_merges = {} # dictionary of BPE merges/pairs (e.g., {(token_id1, token_id2): merged_token_id})
         self.bpe_ranks = {} # TODO
 
-    def encode(self, text, allowed_special = None):
+    def encode(self, text: str, allowed_special: set = None) -> list[int]:
         '''
         Encode the input text into a list of token IDs.
 
@@ -76,7 +76,7 @@ class BPETokenizerSimple:
             allowed_special (set or None): Special tokens to allow passthrough.
         
         Returns:
-            List[int]: List of token IDs.
+            token_ids (list[int]): List of token IDs.
         '''
         import re
 
@@ -107,7 +107,7 @@ class BPETokenizerSimple:
         
         return token_ids
     
-    def tokenize_with_bpe(self, token):
+    def tokenize_with_bpe(self, token: str) -> list[int]:
         '''
         Tokenize a single token using BPE merges.
 
@@ -115,8 +115,9 @@ class BPETokenizerSimple:
             token (str): The token to tokenize.
 
         Returns:
-            List[int]: The list of token IDs after applying BPE.
+            token_ids (list[int]): The list of token IDs after applying BPE.
         '''
+        # tokenization starts always by splitting each word into its characters
         token_ids = [self.inverse_vocab.get(char, None) for char in token] # tokenize the token into individual characters
         if None in token_ids:
             missing_chars = [char for char, tid in zip(token, token_ids) if tid is None]
@@ -144,7 +145,7 @@ class BPETokenizerSimple:
                 token_ids = new_tokens # once we substitute the pairs, we loop again to find new pairs
             return token_ids
     
-    def load_vocab_and_merges(self, vocab_path, bpe_merges_path):
+    def load_vocab_and_merges(self, vocab_path: str, bpe_merges_path: str) -> None:
         '''
         Load the vocabulary and BPE merges from JSON files.
 
@@ -192,3 +193,15 @@ class BPETokenizerSimple:
                         print(f"Merged token '{merged_token}' not found in vocab. Skipping.")
                 else:
                     print(f"Skipping pair {pair} as one of the tokens is not in the vocabulary.")
+    
+    def train(self, text: str, vocab_size: int, allowed_special: set = {"<|endoftext|>"}) -> None:
+        '''
+        Train the BPE tokenizer from scratch (without using any existing vocabulary).
+
+        Args:
+            text (str): The training text.
+            vocab_size (int): The desired vocabulary size.
+            allowed_special (set): A set of special tokens to include in the vocabulary.
+        '''
+        # TODO
+        
