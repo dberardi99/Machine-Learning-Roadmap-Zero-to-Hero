@@ -96,17 +96,24 @@ print(ids)
 print(tokenizer.decode(ids)) # here we won't see the unknown words
 
 # 4. using byte pair enconding to handle unknown tokens
-# byte pair enconding is an algorithm used by GPT-1, GPT-2, etc. tokenizers to deal with unknown tokens
-# for example, tiktokenizer (https://tiktokenizer.vercel.app/?model=gpt2) splits the unknown word in two or more (known) subwords based on the
-# training data used for the particular model (GPT-1, GPT-2, etc.)
-# check this link https://github.com/openai/gpt-2/blob/master/src/encoder.py to see how GPT-2 has implemented the byte pair enconding algorithm
+# byte pair enconding (BPE) is an algorithm used by GPT-1, GPT-2, etc. tokenizers to deal with unknown tokens
+# for example, tiktokenizer (https://tiktokenizer.vercel.app/?model=gpt2) splits the unknown word in two or more (known) subwords
+# based on the training data used for the particular model (GPT-1, GPT-2, etc.)
+# check this link https://github.com/openai/gpt-2/blob/master/src/encoder.py to see how GPT-2 has implemented the BPE algorithm
 tokenizer = tiktoken.get_encoding("gpt2") # we instantiate a new tokenizer with its full vocabulary, the way it was trained, etc.
 print(tokenizer.encode("Hello world"))
 print(tokenizer.decode(tokenizer.encode("Hello world")))
 
-text = ("Hello, do you like tea? <|endoftext|> In the sunlit terraces "
-        "of someunknownPlace jsahsjhjshSAK<SJAKshA") # the <|endoftext|> special token is used to signal to the LLM where a document ends and another starts
+text = ("Hello, do you like tea? <|endoftext|> In the sunlit terraces of someunknownPlace "
+        "jsahsjhjshSAK<SJAKshA") # the <|endoftext|> special token is used to signal to the LLM where a document ends and another starts
 print(tokenizer.encode(text, allowed_special={"<|endoftext|>"}))
 print(tokenizer.decode(tokenizer.encode(text, allowed_special={"<|endoftext|>"})))
 
 # 5. data sampling with a sliding window (how do we provide smaller chunks of these token IDs to the LLM efficiently?)
+with open("the-verdict.txt", "r", encoding="utf-8") as f:
+    raw_text = f.read()
+
+enc_text = tokenizer.encode(raw_text) # tokenize our training text using tiktoken's tokenizer
+#print(len(enc_text)) # how to provide these 5145 token IDs efficently (as sub-chunks) to our LLM?
+
+
