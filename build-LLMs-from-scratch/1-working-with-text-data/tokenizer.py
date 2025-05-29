@@ -8,9 +8,15 @@ from tiktoken import Encoding
 class SimpleTokenizerV1:  # this is not the real tokenizer used by GPT models, but it is a simplified version
     """
     A first simplified version of tokenizer.
+
+    Args:
+        vocab (dict): The vocabulary to use for mapping strings to token IDs.
     """
 
     def __init__(self, vocab: dict) -> None:  # the class takes a vocabulary as input
+        """
+        Create vocabulary and inverted vocabulary.
+        """
         self.str_to_int = vocab  # regular vocabulary (string to integer mapping)
         self.int_to_str = {
             i: s for s, i in vocab.items()
@@ -18,7 +24,13 @@ class SimpleTokenizerV1:  # this is not the real tokenizer used by GPT models, b
 
     def encode(self, text: str) -> list[int]:
         """
-        A function to break down text into tokens using regular expressions.
+        Break down text into tokens using regular expressions.
+
+        Args:
+            text (str): The text to tokenize.
+
+        Returns:
+            ids (list[int]): The list of token IDs corresponding to the tokenized text.
         """
         preprocessed = re.split(
             r'([,.:;?_!"()\']|--|\s)', text
@@ -31,7 +43,13 @@ class SimpleTokenizerV1:  # this is not the real tokenizer used by GPT models, b
 
     def decode(self, ids: list[int]) -> str:
         """
-        A function to re-create the original text starting from the token IDs.
+        Re-create the original text starting from the token IDs.
+
+        Args:
+            ids (list[int]): The list of token IDs.
+
+        Returns:
+            text (str): The converted text starting from the relative token IDs.
         """
         text = " ".join([self.int_to_str[i] for i in ids])
         text = re.sub(
@@ -43,9 +61,15 @@ class SimpleTokenizerV1:  # this is not the real tokenizer used by GPT models, b
 class SimpleTokenizerV2:  # advanced version of our tokenizer including special tokens
     """
     A second version of tokenizer which is also able to deal with unknown words.
+
+    Args:
+        vocab (dict): The vocabulary to use for mapping strings to token IDs.
     """
 
     def __init__(self, vocab: dict) -> None:  # the class takes a vocabulary as input
+        """
+        Create vocabulary and inverted vocabulary.
+        """
         self.str_to_int = vocab  # regular vocabulary (string to integer mapping)
         self.int_to_str = {
             i: s for s, i in vocab.items()
@@ -54,6 +78,12 @@ class SimpleTokenizerV2:  # advanced version of our tokenizer including special 
     def encode(self, text: str) -> list[int]:
         """
         A function to break down text into tokens using regular expressions and including special tokens.
+
+        Args:
+            text (str): The text to tokenize.
+
+        Returns:
+            ids (list[int]): The list of token IDs corresponding to the tokenized text.
         """
         preprocessed = re.split(
             r'([,.:;?_!"()\']|--|\s)', text
@@ -70,6 +100,12 @@ class SimpleTokenizerV2:  # advanced version of our tokenizer including special 
     def decode(self, ids: list[int]) -> str:
         """
         A function to re-create the original text starting from the token IDs.
+
+        Args:
+            ids (list[int]): The list of token IDs.
+
+        Returns:
+            text (str): The converted text starting from the relative token IDs.
         """
         text = " ".join([self.int_to_str[i] for i in ids])
         text = re.sub(
@@ -102,10 +138,8 @@ class BPETokenizerSimple:
             allowed_special (set or None): Special tokens to allow passthrough.
 
         Returns:
-            token_ids (list[int]): List of token IDs.
+            token_ids (list[int]): The list of token IDs.
         """
-        import re
-
         token_ids = []
 
         # TODO: Implement the logic if special tokens are present
@@ -280,7 +314,10 @@ class GPTDatasetV1(Dataset):
 
     def __init__(self, txt: str, tokenizer: Encoding, max_length: int, stride: int) -> None:
         """
-        Link: https://github.com/openai/tiktoken/blob/4560a8896f5fb1d35c6f8fd6eee0399f9a1a27ca/tiktoken/registry.py#L63
+        Chunk the text into overlapping sequences of max_length.
+
+        Links:
+            https://github.com/openai/tiktoken/blob/4560a8896f5fb1d35c6f8fd6eee0399f9a1a27ca/tiktoken/registry.py#L63
         """
         self.input_ids = []
         self.target_ids = []
@@ -288,7 +325,7 @@ class GPTDatasetV1(Dataset):
         # tokenize the entire text
         token_ids = tokenizer.encode(txt, allowed_special={"<|endoftext|>"})
 
-        # use a sliding window to chunk the book into overlapping seuences of max_length
+        # use a sliding window to chunk the text into overlapping sequences of max_length
         for i in range(0, len(token_ids) - max_length, stride):
             input_chunk = token_ids[i : i + max_length]
             target_chunk = token_ids[
@@ -330,21 +367,21 @@ def create_dataloader_v1(
     num_workers: int = 0,
 ) -> DataLoader:
     """
-    Write here and add type hints to the function ...
+    Create dataloader object to store input and target chunks.
 
     Args:
         txt (str): The training dataset.
-        batch_size (int): The number of samples are in each batch.
+        batch_size (int): The number of samples that are in each batch.
         max_length (int): The context's length (namely the chunk size). 
-        stride (int): ...
-        shuffle (bool): ...
+        stride (int): TODO
+        shuffle (bool): TODO
         drop_last (bool): If true it truncates the last batch (chunk) whenever the dataset size is not
-        divisible by the batch_size. Leaving this last (small) batch could result in a loss spike and
+        divisible by the batch_size. Leaving this last (small) batch could result in loss spikes and
         thus in an unstable training. It is usually a good idea to have batches of the same size.
-        num_workers (int): It is for using multiple background processors (multiple subprocesses).
+        num_workers (int): The number of CPU processes to use for preprocessing.
 
     Returns:
-        dataloader (DataLoader): ...
+        dataloader (DataLoader): TODO
     """
 
     # initialize the (tiktoken's) tokenizer
